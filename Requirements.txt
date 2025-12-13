@@ -2,4 +2,4 @@ streamlit
 openai
 matplotlib
 numpy
-reportlab  # For PDF feature
+reportlab
