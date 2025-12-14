@@ -226,10 +226,23 @@ def run_full_analysis(company_name: str, address: str, revenue_input: str, emplo
 
 # ... (UI and display logic unchanged from your last version)
 
-st.set_page_config(page_title="Cyber & Tech E&O Underwriting Assistant",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Cyber & Tech E&O Underwriting Assistant", layout="wide", initial_sidebar_state="expanded")
+
+st.markdown("""
+<style>
+    section[data-testid="stSidebar"] {
+        width: 350px !important;
+        min-width: 350px !important;
+        max-width: 350px !important;
+    }
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    section[data-testid="stSidebar"] .css-1d391kg {
+        width: 350px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 st.title("Cyber & Tech E&O Underwriting Assistant (Beta Version)")
 st.markdown("**Developed by Mouad Boughamza** • Company-specific cyber and technology risk analysis • Powered by xAI Grok • Verifiable sources")
 
