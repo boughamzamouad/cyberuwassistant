@@ -230,18 +230,6 @@ st.set_page_config(page_title="Cyber & Tech E&O Underwriting Assistant",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.markdown("""
-<style>
-    section[data-testid="stSidebar"] {
-        width: 350px !important;
-        min-width: 350px !important;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 350px;
-        margin-left: -350px;
-    }
-</style>
-""", unsafe_allow_html=True)
 st.title("Cyber & Tech E&O Underwriting Assistant (Beta Version)")
 st.markdown("**Developed by Mouad Boughamza** • Company-specific cyber and technology risk analysis • Powered by xAI Grok • Verifiable sources")
 
