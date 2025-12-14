@@ -8,7 +8,7 @@ import numpy as np
 import streamlit as st
 from openai import OpenAI, APIError, RateLimitError
 
-# Optional PDF generation
+# Optional PDF generation with graceful fallback
 try:
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
@@ -174,10 +174,15 @@ if PDF_AVAILABLE:
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=0.75*inch, rightMargin=0.75*inch, topMargin=1*inch, bottomMargin=1*inch)
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='TitleBold', parent=styles['Title'], fontSize=20, alignment=1, spaceAfter=30))
-        styles.add(ParagraphStyle(name='Heading1Bold', parent=styles['Heading1'], fontSize=16, spaceBefore=20, spaceAfter=12))
-        styles.add(ParagraphStyle(name='Heading2Bold', parent=styles['Heading2'], fontSize=14, spaceBefore=15, spaceAfter=10))
-        styles.add(ParagraphStyle(name='BodyText', parent=styles['Normal'], fontSize=11, leading=14, spaceAfter=8, leftIndent=20))
+        # Ensure custom styles exist
+        if 'TitleBold' not in styles:
+            styles.add(ParagraphStyle(name='TitleBold', parent=styles['Title'], fontSize=20, alignment=1, spaceAfter=30))
+        if 'Heading1Bold' not in styles:
+            styles.add(ParagraphStyle(name='Heading1Bold', parent=styles['Heading1'], fontSize=16, spaceBefore=20, spaceAfter=12))
+        if 'Heading2Bold' not in styles:
+            styles.add(ParagraphStyle(name='Heading2Bold', parent=styles['Heading2'], fontSize=14, spaceBefore=15, spaceAfter=10))
+        if 'BodyText' not in styles:
+            styles.add(ParagraphStyle(name='BodyText', parent=styles['Normal'], fontSize=11, leading=14, spaceAfter=8, leftIndent=20))
         
         story = []
         
