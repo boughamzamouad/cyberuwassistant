@@ -8,17 +8,18 @@ import numpy as np
 import streamlit as st
 from openai import OpenAI, APIError, RateLimitError
 
-# Optional PDF generation with graceful fallback
+# Optional PDF generation with enhanced safety
+PDF_AVAILABLE = False
 try:
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
     PDF_AVAILABLE = True
 except ImportError:
-    PDF_AVAILABLE = False
+    st.warning("ReportLab not installed. PDF download feature is disabled. Install with: pip install reportlab")
 
-# Secure loading of API key and all sensitive prompts
+# Secure loading of API key and prompts
 try:
     XAI_API_KEY = st.secrets["XAI_API_KEY"]
     SYSTEM_PROMPT = st.secrets["prompts"]["SYSTEM_PROMPT"]
@@ -174,15 +175,42 @@ if PDF_AVAILABLE:
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=0.75*inch, rightMargin=0.75*inch, topMargin=1*inch, bottomMargin=1*inch)
         styles = getSampleStyleSheet()
-        # Ensure custom styles exist
-        if 'TitleBold' not in styles:
-            styles.add(ParagraphStyle(name='TitleBold', parent=styles['Title'], fontSize=20, alignment=1, spaceAfter=30))
-        if 'Heading1Bold' not in styles:
-            styles.add(ParagraphStyle(name='Heading1Bold', parent=styles['Heading1'], fontSize=16, spaceBefore=20, spaceAfter=12))
-        if 'Heading2Bold' not in styles:
-            styles.add(ParagraphStyle(name='Heading2Bold', parent=styles['Heading2'], fontSize=14, spaceBefore=15, spaceAfter=10))
-        if 'BodyText' not in styles:
-            styles.add(ParagraphStyle(name='BodyText', parent=styles['Normal'], fontSize=11, leading=14, spaceAfter=8, leftIndent=20))
+        
+        # Explicitly define custom styles to avoid any missing name issues
+        custom_styles = {
+            'TitleBold': ParagraphStyle(
+                name='TitleBold',
+                parent=styles['Title'],
+                fontSize=20,
+                alignment=1,
+                spaceAfter=30
+            ),
+            'Heading1Bold': ParagraphStyle(
+                name='Heading1Bold',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceBefore=20,
+                spaceAfter=12
+            ),
+            'Heading2Bold': ParagraphStyle(
+                name='Heading2Bold',
+                parent=styles['Heading2'],
+                fontSize=14,
+                spaceBefore=15,
+                spaceAfter=10
+            ),
+            'BodyText': ParagraphStyle(
+                name='BodyText',
+                parent=styles['Normal'],
+                fontSize=11,
+                leading=14,
+                spaceAfter=8,
+                leftIndent=20
+            )
+        }
+        for name, style in custom_styles.items():
+            if name not in styles:
+                styles.add(style)
         
         story = []
         
@@ -581,73 +609,18 @@ if start:
             st.markdown("---")
         
         st.subheader("Download Report")
-        # Optional PDF generation with enhanced safety
-PDF_AVAILABLE = False
-try:
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    PDF_AVAILABLE = True
-except ImportError as e:
-    st.warning(f"ReportLab import failed: {e}. PDF feature disabled.")
-
-if PDF_AVAILABLE:
-    def create_pdf_report(results: Dict, assess_teo: bool, selected_sections: Dict[str, bool]) -> BytesIO:
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=0.75*inch, rightMargin=0.75*inch, topMargin=1*inch, bottomMargin=1*inch)
-        styles = getSampleStyleSheet()
-        
-        # Explicitly define custom styles to avoid any missing name issues
-        custom_styles = {
-            'TitleBold': ParagraphStyle(
-                name='TitleBold',
-                parent=styles['Title'],
-                fontSize=20,
-                alignment=1,
-                spaceAfter=30
-            ),
-            'Heading1Bold': ParagraphStyle(
-                name='Heading1Bold',
-                parent=styles['Heading1'],
-                fontSize=16,
-                spaceBefore=20,
-                spaceAfter=12
-            ),
-            'Heading2Bold': ParagraphStyle(
-                name='Heading2Bold',
-                parent=styles['Heading2'],
-                fontSize=14,
-                spaceBefore=15,
-                spaceAfter=10
-            ),
-            'BodyText': ParagraphStyle(
-                name='BodyText',
-                parent=styles['Normal'],
-                fontSize=11,
-                leading=14,
-                spaceAfter=8,
-                leftIndent=20
+        if PDF_AVAILABLE:
+            pdf_buffer = create_pdf_report(results, assess_teo, selected_sections)
+            st.download_button(
+                label="Download Full Report as PDF",
+                data=pdf_buffer,
+                file_name=f"{results['company'].replace(' ', '_')}_Cyber_Risk_Report.pdf",
+                mime="application/pdf"
             )
-        }
-        for name, style in custom_styles.items():
-            styles.add(style)
-        
-        story = []
-        
-        story.append(Paragraph(f"{results['company']} Cyber & Tech E&O Risk Profile", styles['TitleBold']))
-        story.append(Spacer(1, 0.3*inch))
-        story.append(Paragraph("Generated by Cyber & Tech E&O Underwriting Assistant (Beta Version)", styles['Normal']))
-        story.append(Paragraph("Developed by Mouad Boughamza", styles['Normal']))
-        story.append(Spacer(1, 0.5*inch))
-        
-        # ... (rest of the story building code unchanged, using styles['BodyText'], etc.)
-        
-        doc.build(story)
-        buffer.seek(0)
-        return buffer
-else:
-    def create_pdf_report(*args, **kwargs):
-        return BytesIO()
+        else:
+            st.info("PDF download not available. Install ReportLab: `pip install reportlab`")
+    
+    except Exception as e:
+        st.error(f"Application error: {str(e)}. Please check the terminal logs for full details.")
 
 st.caption("Beta Version • Developed by Mouad Boughamza • Optimized for performance • Powered by xAI Grok")
