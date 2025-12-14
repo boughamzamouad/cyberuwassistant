@@ -226,7 +226,7 @@ def run_full_analysis(company_name: str, address: str, revenue_input: str, emplo
 
 # ... (UI and display logic unchanged from your last version)
 
-st.set_page_config(page_title="Cyber & Tech E&O Underwriting Assistant", layout="centered")
+st.set_page_config(page_title="Cyber & Tech E&O Underwriting Assistant", layout="wide")
 st.title("Cyber & Tech E&O Underwriting Assistant (Beta Version)")
 st.markdown("**Developed by Mouad Boughamza** • Company-specific cyber and technology risk analysis • Powered by xAI Grok • Verifiable sources")
 
